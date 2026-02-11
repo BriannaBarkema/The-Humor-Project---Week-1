@@ -1,7 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { createServerClient } from "@supabase/ssr";
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
     let response = NextResponse.next({ request });
 
     const supabase = createServerClient(
@@ -23,8 +23,7 @@ export async function middleware(request: NextRequest) {
         data: { user },
     } = await supabase.auth.getUser();
 
-    const isProtected = request.nextUrl.pathname.startsWith("/dorms");
-    if (isProtected && !user) {
+    if (!user) {
         const url = request.nextUrl.clone();
         url.pathname = "/login";
         url.search = "";
@@ -35,5 +34,5 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-    matcher: ["/dorms/:path*"],
+    matcher: ["/dorms", "/dorms/:path*"],
 };

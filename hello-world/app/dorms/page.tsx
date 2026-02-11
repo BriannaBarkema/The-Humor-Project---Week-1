@@ -1,4 +1,6 @@
 import { headers } from "next/headers";
+import { redirect } from "next/navigation";
+import { createClient } from "@/utils/supabase/server";
 
 type Dorm = {
     id: number;
@@ -32,6 +34,13 @@ async function getDorms(): Promise<Dorm[]> {
 }
 
 export default async function DormsPage() {
+    const supabase = await createClient();
+    const { data } = await supabase.auth.getUser();
+
+    if (!data.user) {
+        redirect("/login");
+    }
+
     const dorms = await getDorms();
 
     return (
@@ -48,7 +57,9 @@ export default async function DormsPage() {
             {dorms.length === 0 ? (
                 <div style={styles.empty}>
                     <div style={styles.emptyTitle}>No dorms found</div>
-                    <div style={styles.subtle}>Try adding rows in Supabase, then refresh.</div>
+                    <div style={styles.subtle}>
+                        Try adding rows in Supabase, then refresh.
+                    </div>
                 </div>
             ) : (
                 <section style={styles.grid}>
@@ -83,19 +94,21 @@ export default async function DormsPage() {
                             <dl style={styles.metaGrid}>
                                 <div style={styles.metaItem}>
                                     <dt style={styles.metaLabel}>University ID</dt>
-                                    <dd style={styles.metaValue}>
-                                        {dorm.university_id ?? "—"}
-                                    </dd>
+                                    <dd style={styles.metaValue}>{dorm.university_id ?? "—"}</dd>
                                 </div>
 
                                 <div style={styles.metaItem}>
                                     <dt style={styles.metaLabel}>Created</dt>
-                                    <dd style={styles.metaValue}>{formatISODate(dorm.created_at)}</dd>
+                                    <dd style={styles.metaValue}>
+                                        {formatISODate(dorm.created_at)}
+                                    </dd>
                                 </div>
 
                                 <div style={styles.metaItem}>
                                     <dt style={styles.metaLabel}>Updated</dt>
-                                    <dd style={styles.metaValue}>{formatISODate(dorm.updated_at)}</dd>
+                                    <dd style={styles.metaValue}>
+                                        {formatISODate(dorm.updated_at)}
+                                    </dd>
                                 </div>
                             </dl>
                         </article>

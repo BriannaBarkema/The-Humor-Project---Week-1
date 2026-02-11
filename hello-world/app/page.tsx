@@ -1,65 +1,102 @@
-import Image from "next/image";
+"use client";
 
-export default function Home() {
+import { createClient } from "@/utils/supabase/client";
+
+export default function LoginPage() {
+  const supabase = createClient();
+
+  const signInWithGoogle = async () => {
+    const origin = window.location.origin;
+    const redirectTo = `${origin}/auth/callback`;
+
+    await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: { redirectTo },
+    });
+  };
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+      <main style={styles.page}>
+        <div style={styles.shell}>
+          <div style={styles.card}>
+            <div style={styles.header}>
+              <h1 style={styles.h1}>Sign in</h1>
+              <p style={styles.subtle}>Continue with Google to access dorms.</p>
+            </div>
+
+            <button type="button" onClick={signInWithGoogle} style={styles.primaryBtn}>
+            <span style={styles.gBadge} aria-hidden>
+              G
+            </span>
+              Continue with Google
+            </button>
+          </div>
         </div>
       </main>
-    </div>
   );
 }
+
+const styles: Record<string, React.CSSProperties> = {
+  page: {
+    padding: 28,
+    maxWidth: 1100,
+    margin: "0 auto",
+  },
+  shell: {
+    minHeight: "calc(100vh - 56px)",
+    display: "grid",
+    placeItems: "center",
+  },
+  card: {
+    width: "100%",
+    maxWidth: 520,
+    border: "1px solid rgba(255,255,255,0.14)",
+    background: "rgba(255,255,255,0.04)",
+    borderRadius: 18,
+    padding: 18,
+    boxShadow: "0 10px 26px rgba(0,0,0,0.28)",
+  },
+  header: {
+    marginBottom: 14,
+  },
+  h1: {
+    fontSize: 30,
+    fontWeight: 800,
+    letterSpacing: -0.3,
+    margin: 0,
+    lineHeight: 1.1,
+  },
+  subtle: {
+    margin: "8px 0 0 0",
+    opacity: 0.75,
+    fontSize: 14,
+  },
+  primaryBtn: {
+    width: "100%",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 10,
+    padding: "12px 14px",
+    borderRadius: 14,
+    border: "1px solid rgba(255,255,255,0.16)",
+    background: "rgba(255,255,255,0.08)",
+    color: "inherit",
+    fontSize: 14.5,
+    fontWeight: 750,
+    cursor: "pointer",
+    boxShadow: "0 8px 22px rgba(0,0,0,0.20)",
+  },
+  gBadge: {
+    width: 22,
+    height: 22,
+    borderRadius: 999,
+    display: "grid",
+    placeItems: "center",
+    border: "1px solid rgba(255,255,255,0.18)",
+    background: "rgba(255,255,255,0.06)",
+    fontWeight: 900,
+    fontSize: 13,
+    lineHeight: 1,
+  },
+};

@@ -7,7 +7,7 @@ export default function LoginPage() {
 
     const signInWithGoogle = async () => {
         const origin = window.location.origin;
-        const redirectTo = `${origin}/auth/callback`; // must be exactly /auth/callback
+        const redirectTo = `${origin}/auth/callback`;
 
         await supabase.auth.signInWithOAuth({
             provider: "google",
@@ -21,22 +21,37 @@ export default function LoginPage() {
                 <div style={styles.card}>
                     <div style={styles.header}>
                         <h1 style={styles.h1}>Sign in</h1>
-                        <p style={styles.subtle}>
-                            Continue with Google to access the gated pages.
-                        </p>
+                        <p style={styles.subtle}>Continue with Google to access dorms.</p>
                     </div>
 
-                    <button type="button" onClick={signInWithGoogle} style={styles.primaryBtn}>
-                        <span style={styles.googleDot} />
+                    <button
+                        type="button"
+                        onClick={signInWithGoogle}
+                        style={styles.primaryBtn}
+                    >
+            <span style={styles.iconWrap} aria-hidden>
+              <svg width="18" height="18" viewBox="0 0 48 48">
+                <path
+                    fill="#EA4335"
+                    d="M24 9.5c3.54 0 6.06 1.53 7.45 2.81l5.43-5.43C33.58 3.86 29.25 1.5 24 1.5 14.96 1.5 7.2 6.68 3.49 14.23l6.6 5.12C11.78 13.26 17.39 9.5 24 9.5z"
+                />
+                <path
+                    fill="#4285F4"
+                    d="M46.5 24.5c0-1.57-.14-3.08-.4-4.55H24v8.62h12.7c-.55 2.94-2.22 5.44-4.74 7.12l7.27 5.64C43.56 37.12 46.5 31.3 46.5 24.5z"
+                />
+                <path
+                    fill="#FBBC05"
+                    d="M10.09 28.65c-.5-1.5-.79-3.1-.79-4.65s.29-3.15.79-4.65l-6.6-5.12C1.86 17.27 1.5 20.58 1.5 24s.36 6.73 1.99 9.77l6.6-5.12z"
+                />
+                <path
+                    fill="#34A853"
+                    d="M24 46.5c6.48 0 11.92-2.14 15.9-5.82l-7.27-5.64c-2.02 1.36-4.6 2.16-8.63 2.16-6.61 0-12.22-3.76-14.22-8.85l-6.6 5.12C7.2 41.32 14.96 46.5 24 46.5z"
+                />
+                <path fill="none" d="M1.5 1.5h45v45h-45z" />
+              </svg>
+            </span>
                         Continue with Google
                     </button>
-
-                    <div style={styles.note}>
-                        <div style={styles.noteTitle}>Redirect</div>
-                        <div style={styles.noteBody}>
-                            This app redirects to <span style={styles.mono}>/auth/callback</span>.
-                        </div>
-                    </div>
                 </div>
             </div>
         </main>
@@ -92,37 +107,15 @@ const styles: Record<string, React.CSSProperties> = {
         fontSize: 14.5,
         fontWeight: 750,
         cursor: "pointer",
-        boxShadow: "0 8px 22px rgba(0,0,0,0.20)",
+        boxShadow: "0 8px 22px rgba(0,0,0,0.2)",
     },
-    googleDot: {
-        width: 10,
-        height: 10,
+    iconWrap: {
+        width: 26,
+        height: 26,
         borderRadius: 999,
-        background:
-            "conic-gradient(from 180deg, #ea4335, #fbbc05, #34a853, #4285f4, #ea4335)",
-        boxShadow: "0 0 0 3px rgba(255,255,255,0.06)",
-    },
-    note: {
-        marginTop: 14,
-        border: "1px solid rgba(255,255,255,0.14)",
-        background: "rgba(255,255,255,0.03)",
-        borderRadius: 14,
-        padding: 12,
-    },
-    noteTitle: {
-        fontSize: 12,
-        fontWeight: 800,
-        opacity: 0.9,
-        marginBottom: 6,
-    },
-    noteBody: {
-        fontSize: 13,
-        opacity: 0.8,
-        lineHeight: 1.4,
-    },
-    mono: {
-        fontFamily:
-            'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace',
-        opacity: 0.95,
+        display: "grid",
+        placeItems: "center",
+        border: "1px solid rgba(255,255,255,0.18)",
+        background: "rgba(255,255,255,0.06)",
     },
 };
