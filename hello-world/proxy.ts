@@ -1,66 +1,38 @@
-"use client";
+import { NextResponse, type NextRequest } from "next/server";
+import { createServerClient } from "@supabase/ssr";
 
-import { useEffect } from "react";
-import { useRouter } from "next/navigation";
-import { createClient } from "@/utils/supabase/client";
+export async function proxy(request: NextRequest) {
+    let response = NextResponse.next({ request });
 
-export default function AuthCallbackPage() {
-    const router = useRouter();
+    const supabase = createServerClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+        {
+            cookies: {
+                getAll: () => request.cookies.getAll(),
+                setAll: (cookiesToSet) => {
+                    cookiesToSet.forEach(({ name, value, options }) => {
+                        response.cookies.set(name, value, options);
+                    });
+                },
+            },
+        }
+    );
 
-    useEffect(() => {
-        const run = async () => {
-            const supabase = createClient();
+    const {
+        data: { user },
+    } = await supabase.auth.getUser();
 
-            const url = new URL(window.location.href);
-            const code = url.searchParams.get("code");
+    if (!user) {
+        const url = request.nextUrl.clone();
+        url.pathname = "/login";
+        url.search = "";
+        return NextResponse.redirect(url);
+    }
 
-            // If the provider redirected back with an error, it may be in the hash
-            const hash = window.location.hash || "";
-            const hasErrorInHash = hash.includes("error=");
-
-            if (hasErrorInHash) {
-                router.replace("/login");
-                return;
-            }
-
-            // If we got an auth code, exchange it for a session
-            if (code) {
-                try {
-                    await supabase.auth.exchangeCodeForSession(code);
-                    router.replace("/dorms");
-                    return;
-                } catch {
-                    router.replace("/login");
-                    return;
-                }
-            }
-
-            // No code and no usable info -> go back to login
-            router.replace("/login");
-        };
-
-        void run();
-    }, [router]);
-
-    return (
-        <main style={{ padding: 28, maxWidth: 1100, margin: "0 auto" }}>
-    <div
-        style={{
-        border: "1px solid rgba(255,255,255,0.14)",
-            background: "rgba(255,255,255,0.04)",
-            borderRadius: 16,
-            padding: 18,
-            boxShadow: "0 8px 22px rgba(0,0,0,0.25)",
-    }}
->
-    <div style={{ fontSize: 18, fontWeight: 800, letterSpacing: -0.2 }}>
-    Signing you in…
-        </div>
-        <div style={{ marginTop: 8, opacity: 0.75, fontSize: 14 }}>
-    If this takes more than a moment, you’ll be sent back to login.
-    </div>
-    </div>
-    </main>
-);
+    return response;
 }
 
+export const config = {
+    matcher: ["/dorms", "/dorms/:path*"],
+};
