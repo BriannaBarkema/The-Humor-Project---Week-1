@@ -1,7 +1,6 @@
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { createClient } from "@/utils/supabase/server";
-import DormsClientGuard from "./dorms_client_guard";
 
 type Dorm = {
     id: number;
@@ -46,8 +45,6 @@ export default async function DormsPage() {
 
     return (
         <main style={styles.page}>
-            <DormsClientGuard />
-
             <div style={styles.header}>
                 <div>
                     <h1 style={styles.h1}>Dorms</h1>
@@ -117,11 +114,7 @@ export default async function DormsPage() {
 }
 
 const styles: Record<string, React.CSSProperties> = {
-    page: {
-        padding: 28,
-        maxWidth: 1100,
-        margin: "0 auto",
-    },
+    page: { padding: 28, maxWidth: 1100, margin: "0 auto" },
     header: {
         display: "flex",
         alignItems: "flex-end",
@@ -136,22 +129,14 @@ const styles: Record<string, React.CSSProperties> = {
         margin: 0,
         lineHeight: 1.1,
     },
-    subtle: {
-        margin: "6px 0 0 0",
-        opacity: 0.75,
-        fontSize: 14,
-    },
+    subtle: { margin: "6px 0 0 0", opacity: 0.75, fontSize: 14 },
     empty: {
         border: "1px solid rgba(255,255,255,0.14)",
         background: "rgba(255,255,255,0.04)",
         borderRadius: 16,
         padding: 18,
     },
-    emptyTitle: {
-        fontSize: 16,
-        fontWeight: 700,
-        marginBottom: 6,
-    },
+    emptyTitle: { fontSize: 16, fontWeight: 700, marginBottom: 6 },
     grid: {
         display: "grid",
         gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
@@ -209,38 +194,17 @@ const styles: Record<string, React.CSSProperties> = {
         textAlign: "right",
         minWidth: 76,
     },
-    idLabel: {
-        display: "block",
-        fontSize: 11,
-        opacity: 0.7,
-        marginBottom: 2,
-    },
-    idValue: {
-        display: "block",
-        fontSize: 16,
-        fontWeight: 800,
-        letterSpacing: -0.2,
-    },
-    divider: {
-        height: 1,
-        background: "rgba(255,255,255,0.10)",
-        margin: "14px 0",
-    },
+    idLabel: { display: "block", fontSize: 11, opacity: 0.7, marginBottom: 2 },
+    idValue: { display: "block", fontSize: 16, fontWeight: 800, letterSpacing: -0.2 },
+    divider: { height: 1, background: "rgba(255,255,255,0.10)", margin: "14px 0" },
     metaGrid: {
         display: "grid",
         gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
         gap: 12,
         margin: 0,
     },
-    metaItem: {
-        margin: 0,
-        minWidth: 0,
-    },
-    metaLabel: {
-        fontSize: 11.5,
-        opacity: 0.7,
-        marginBottom: 4,
-    },
+    metaItem: { margin: 0, minWidth: 0 },
+    metaLabel: { fontSize: 11.5, opacity: 0.7, marginBottom: 4 },
     metaValue: {
         fontSize: 14,
         fontWeight: 600,
