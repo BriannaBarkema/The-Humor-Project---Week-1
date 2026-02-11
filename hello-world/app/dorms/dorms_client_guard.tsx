@@ -8,8 +8,7 @@ export default function DormsClientGuard() {
 
     useEffect(() => {
         const hash = window.location.hash || "";
-        if (hash.includes("error=access_denied")) {
-            // Clear the hash and go back to login
+        if (hash.includes("error=")) {
             router.replace("/login");
         }
     }, [router]);

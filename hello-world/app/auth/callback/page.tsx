@@ -15,14 +15,26 @@ export default function Page() {
             const code = url.searchParams.get("code");
 
             const hash = window.location.hash || "";
-            if (hash.includes("error=")) {
+            const hasOAuthError = hash.includes("error=");
+
+            // Cancel / provider error case
+            if (hasOAuthError) {
                 router.replace("/login");
                 return;
             }
 
+            // If we have a code, exchange it for a session
             if (code) {
                 try {
                     await supabase.auth.exchangeCodeForSession(code);
+
+                    // Confirm the session is actually present client-side
+                    const { data, error } = await supabase.auth.getUser();
+                    if (error || !data.user) {
+                        router.replace("/login");
+                        return;
+                    }
+
                     router.replace("/dorms");
                     return;
                 } catch {
@@ -31,6 +43,7 @@ export default function Page() {
                 }
             }
 
+            // No code and no error — go to login
             router.replace("/login");
         };
 
@@ -41,7 +54,7 @@ export default function Page() {
         <main style={styles.page}>
             <div style={styles.card}>
                 <div style={styles.title}>Signing you in…</div>
-                <div style={styles.subtle}>If you canceled, you’ll be sent back to login.</div>
+                <div style={styles.subtle}>You’ll be redirected automatically.</div>
             </div>
         </main>
     );
