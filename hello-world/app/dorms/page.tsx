@@ -1,6 +1,7 @@
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { createClient } from "@/utils/supabase/server";
+import DormsClientGuard from "./dorms_client_guard";
 
 type Dorm = {
     id: number;
@@ -45,6 +46,8 @@ export default async function DormsPage() {
 
     return (
         <main style={styles.page}>
+            <DormsClientGuard />
+
             <div style={styles.header}>
                 <div>
                     <h1 style={styles.h1}>Dorms</h1>
@@ -57,9 +60,7 @@ export default async function DormsPage() {
             {dorms.length === 0 ? (
                 <div style={styles.empty}>
                     <div style={styles.emptyTitle}>No dorms found</div>
-                    <div style={styles.subtle}>
-                        Try adding rows in Supabase, then refresh.
-                    </div>
+                    <div style={styles.subtle}>Try adding rows in Supabase, then refresh.</div>
                 </div>
             ) : (
                 <section style={styles.grid}>
@@ -99,16 +100,12 @@ export default async function DormsPage() {
 
                                 <div style={styles.metaItem}>
                                     <dt style={styles.metaLabel}>Created</dt>
-                                    <dd style={styles.metaValue}>
-                                        {formatISODate(dorm.created_at)}
-                                    </dd>
+                                    <dd style={styles.metaValue}>{formatISODate(dorm.created_at)}</dd>
                                 </div>
 
                                 <div style={styles.metaItem}>
                                     <dt style={styles.metaLabel}>Updated</dt>
-                                    <dd style={styles.metaValue}>
-                                        {formatISODate(dorm.updated_at)}
-                                    </dd>
+                                    <dd style={styles.metaValue}>{formatISODate(dorm.updated_at)}</dd>
                                 </div>
                             </dl>
                         </article>
