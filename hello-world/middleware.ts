@@ -23,11 +23,11 @@ export async function middleware(request: NextRequest) {
         data: { user },
     } = await supabase.auth.getUser();
 
-    const isProtected = request.nextUrl.pathname.startsWith("/dashboard");
+    const isProtected = request.nextUrl.pathname.startsWith("/dorms");
     if (isProtected && !user) {
         const url = request.nextUrl.clone();
         url.pathname = "/login";
-        url.search = ""; // keep it clean
+        url.search = "";
         return NextResponse.redirect(url);
     }
 
@@ -35,5 +35,5 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-    matcher: ["/dashboard/:path*"],
+    matcher: ["/dorms/:path*"],
 };
