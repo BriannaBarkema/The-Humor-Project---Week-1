@@ -1,13 +1,32 @@
 "use client";
 
+import { useSearchParams } from "next/navigation";
 import { createClient } from "@/utils/supabase/client";
+
+function safeNext(raw: string | null) {
+    if (!raw) return "/dorms";
+    if (!raw.startsWith("/")) return "/dorms";
+    if (raw.startsWith("/auth")) return "/dorms";
+    return raw;
+}
+
+function setPostLoginCookie(nextPath: string) {
+    const isHttps = typeof window !== "undefined" && window.location.protocol === "https:";
+    const secure = isHttps ? "; Secure" : "";
+    document.cookie = `post_login_redirect=${encodeURIComponent(nextPath)}; Path=/; SameSite=Lax${secure}`;
+}
 
 export default function LoginPage() {
     const supabase = createClient();
+    const sp = useSearchParams();
+    const next = safeNext(sp.get("next"));
 
     const signInWithGoogle = async () => {
+        // Store where to go AFTER auth, without adding query params to /auth/callback
+        setPostLoginCookie(next);
+
         const origin = window.location.origin;
-        const redirectTo = `${origin}/auth/callback`;
+        const redirectTo = `${origin}/auth/callback`; // IMPORTANT: no query params
 
         await supabase.auth.signInWithOAuth({
             provider: "google",
@@ -15,20 +34,18 @@ export default function LoginPage() {
         });
     };
 
+    const label = next === "/captions" ? "captions" : "dorms";
+
     return (
         <main style={styles.page}>
             <div style={styles.shell}>
                 <div style={styles.card}>
                     <div style={styles.header}>
                         <h1 style={styles.h1}>Sign in</h1>
-                        <p style={styles.subtle}>Continue with Google to access dorms.</p>
+                        <p style={styles.subtle}>Continue with Google to access {label}.</p>
                     </div>
 
-                    <button
-                        type="button"
-                        onClick={signInWithGoogle}
-                        style={styles.primaryBtn}
-                    >
+                    <button type="button" onClick={signInWithGoogle} style={styles.primaryBtn}>
             <span style={styles.iconWrap} aria-hidden>
               <svg width="18" height="18" viewBox="0 0 48 48">
                 <path
