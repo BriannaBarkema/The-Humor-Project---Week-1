@@ -1,26 +1,120 @@
-@import "tailwindcss";
+/* App shell spacing so content doesn't hide behind sticky nav */
+.ac-page {
+  padding-top: 76px;
+}
 
+/* Make app consistently dark (so it matches your older look) */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --background: #0a0a0a;
+  --foreground: #ededed;
 }
 
 body {
-  background: var(--background);
+  background: radial-gradient(1200px 600px at 50% -200px, rgba(255,215,0,0.10), rgba(0,0,0,0) 55%), var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+}
+
+/* Navbar */
+.ac-nav {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  background: rgba(10, 10, 10, 0.72);
+  border-bottom: 1px solid rgba(255, 215, 0, 0.18);
+}
+
+.ac-nav-inner {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 14px 18px;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 14px;
+}
+
+.ac-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  user-select: none;
+}
+
+.ac-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  background: rgba(255, 215, 0, 0.85);
+  box-shadow: 0 0 18px rgba(255, 215, 0, 0.35);
+}
+
+.ac-title {
+  font-weight: 900;
+  letter-spacing: -0.2px;
+  opacity: 0.92;
+}
+
+.ac-links {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.ac-link {
+  padding: 9px 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  background: rgba(255, 255, 255, 0.04);
+  font-weight: 850;
+  font-size: 14px;
+  text-decoration: none;
+  color: inherit;
+  opacity: 0.9;
+  transition: transform 0.08s ease, opacity 0.08s ease;
+}
+
+.ac-link:hover {
+  opacity: 1;
+  transform: translateY(-1px);
+}
+
+.ac-link-active {
+  border: 1px solid rgba(255, 215, 0, 0.45);
+  background: linear-gradient(180deg, rgba(255, 215, 0, 0.20), rgba(255, 215, 0, 0.08));
+  opacity: 1;
+}
+
+.ac-actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.ac-logout {
+  padding: 9px 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.04);
+  color: inherit;
+  font-weight: 850;
+  font-size: 14px;
+  cursor: pointer;
+  opacity: 0.9;
+}
+
+.ac-logout:hover {
+  opacity: 1;
+}
+
+@media (max-width: 640px) {
+  .ac-nav-inner {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+  .ac-actions {
+    justify-content: center;
+  }
 }
