@@ -24,12 +24,16 @@ export async function proxy(request: NextRequest) {
     } = await supabase.auth.getUser();
 
     const pathname = request.nextUrl.pathname;
-    const isProtected = pathname.startsWith("/dorms") || pathname.startsWith("/captions");
+
+    const isProtected =
+        pathname.startsWith("/dorms") ||
+        pathname.startsWith("/captions") ||
+        pathname.startsWith("/caption_generate");
 
     if (isProtected && !user) {
         const url = request.nextUrl.clone();
         url.pathname = "/login";
-        url.searchParams.set("next", pathname); // this is NOT the OAuth redirect URI
+        url.searchParams.set("next", pathname);
         return NextResponse.redirect(url);
     }
 
@@ -37,5 +41,12 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-    matcher: ["/dorms", "/dorms/:path*", "/captions", "/captions/:path*"],
+    matcher: [
+        "/dorms",
+        "/dorms/:path*",
+        "/captions",
+        "/captions/:path*",
+        "/caption_generate",
+        "/caption_generate/:path*",
+    ],
 };

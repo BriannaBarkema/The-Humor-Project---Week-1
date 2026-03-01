@@ -35,7 +35,12 @@ export default function LoginClient() {
         });
     };
 
-    const label = next === "/captions" ? "captions" : "dorms";
+    const label =
+        next === "/captions"
+            ? "captions"
+            : next === "/caption_generate"
+                ? "caption generator"
+                : "dorms";
 
     return (
         <main style={styles.page}>
