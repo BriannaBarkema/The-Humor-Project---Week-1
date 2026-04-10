@@ -89,7 +89,7 @@ export default async function CaptionsPage() {
 
 const styles: Record<string, React.CSSProperties> = {
     page: {
-        padding: 28,
+        padding: "8px 20px 20px",
         maxWidth: 1100,
         margin: "0 auto",
     },

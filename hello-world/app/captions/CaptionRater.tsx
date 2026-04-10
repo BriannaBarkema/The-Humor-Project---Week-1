@@ -1,11 +1,17 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 type NextPayload = {
     caption: { id: string; content: string; image_id: string | null };
     image: { id: string; url: string } | null;
 };
+
+function isTypingTarget(el: EventTarget | null) {
+    if (!(el instanceof HTMLElement)) return false;
+    const tag = el.tagName.toLowerCase();
+    return tag === "input" || tag === "textarea" || el.isContentEditable;
+}
 
 export default function CaptionRater(props: {
     initialCaptionId: string;
@@ -18,6 +24,7 @@ export default function CaptionRater(props: {
     const [imageUrl, setImageUrl] = useState<string>(props.initialImageUrl);
     const [busy, setBusy] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [lastVote, setLastVote] = useState<1 | -1 | null>(null);
 
     const hasImage = useMemo(() => Boolean(imageUrl && imageUrl.trim().length > 0), [imageUrl]);
 
@@ -33,12 +40,14 @@ export default function CaptionRater(props: {
         setCaptionId(payload.caption.id);
         setCaptionContent(payload.caption.content ?? "");
         setImageUrl(payload.image?.url ?? "");
+        setLastVote(null);
     }
 
     async function vote(voteValue: 1 | -1) {
         if (busy) return;
         setBusy(true);
         setError(null);
+        setLastVote(voteValue);
 
         try {
             const res = await fetch("/api/captions/vote", {
@@ -64,6 +73,7 @@ export default function CaptionRater(props: {
             setCaptionId(payload.caption.id);
             setCaptionContent(payload.caption.content ?? "");
             setImageUrl(payload.image?.url ?? "");
+            setLastVote(null);
         } catch (e: any) {
             setError(e?.message ?? String(e));
             try {
@@ -76,9 +86,32 @@ export default function CaptionRater(props: {
         }
     }
 
+    useEffect(() => {
+        function onKeyDown(e: KeyboardEvent) {
+            if (busy) return;
+            if (isTypingTarget(e.target)) return;
+
+            if (e.key === "ArrowUp") {
+                e.preventDefault();
+                void vote(1);
+            } else if (e.key === "ArrowDown") {
+                e.preventDefault();
+                void vote(-1);
+            }
+        }
+
+        window.addEventListener("keydown", onKeyDown);
+        return () => window.removeEventListener("keydown", onKeyDown);
+    }, [busy, captionId]);
+
     return (
         <div style={styles.wrap}>
             <div style={styles.card}>
+                <div style={styles.helpRow}>
+                    <span style={styles.helpPill}>Use ↑ to upvote</span>
+                    <span style={styles.helpPill}>Use ↓ to downvote</span>
+                </div>
+
                 <div style={styles.mediaShell}>
                     {hasImage ? (
                         <img src={imageUrl} alt="Caption image" style={styles.image} />
@@ -100,7 +133,11 @@ export default function CaptionRater(props: {
                         type="button"
                         onClick={() => vote(1)}
                         disabled={busy}
-                        style={{ ...styles.btn, ...(busy ? styles.btnDisabled : {}) }}
+                        style={{
+                            ...styles.btn,
+                            ...(lastVote === 1 ? styles.btnActiveUp : {}),
+                            ...(busy ? styles.btnDisabled : {}),
+                        }}
                     >
                         Upvote
                     </button>
@@ -109,7 +146,11 @@ export default function CaptionRater(props: {
                         type="button"
                         onClick={() => vote(-1)}
                         disabled={busy}
-                        style={{ ...styles.btnSecondary, ...(busy ? styles.btnDisabled : {}) }}
+                        style={{
+                            ...styles.btnSecondary,
+                            ...(lastVote === -1 ? styles.btnActiveDown : {}),
+                            ...(busy ? styles.btnDisabled : {}),
+                        }}
                     >
                         Downvote
                     </button>
@@ -137,31 +178,46 @@ const styles: Record<string, React.CSSProperties> = {
         width: "min(920px, 100%)",
         margin: "0 auto",
         borderRadius: 22,
-        padding: 18,
-        boxSizing: "border-box", // important
+        padding: 14,
+        boxSizing: "border-box",
         border: "1px solid rgba(255, 215, 0, 0.22)",
         background:
             "radial-gradient(1200px 500px at 50% -40%, rgba(255,215,0,0.12), rgba(0,0,0,0) 55%), rgba(255,255,255,0.03)",
         boxShadow: "0 18px 55px rgba(0,0,0,0.55)",
     },
 
+    helpRow: {
+        display: "flex",
+        justifyContent: "center",
+        gap: 8,
+        flexWrap: "wrap",
+        marginBottom: 8,
+    },
+    helpPill: {
+        padding: "6px 10px",
+        borderRadius: 999,
+        border: "1px solid rgba(255,255,255,0.12)",
+        background: "rgba(255,255,255,0.05)",
+        fontSize: 12.5,
+        fontWeight: 750,
+        opacity: 0.86,
+    },
+
     mediaShell: {
         width: "100%",
-        boxSizing: "border-box", // fixes overflow caused by border+padding
+        boxSizing: "border-box",
         borderRadius: 18,
         border: "1px solid rgba(255,255,255,0.12)",
         background: "rgba(0,0,0,0.35)",
-        padding: 12,
+        padding: 6,
         display: "grid",
         placeItems: "center",
-        marginBottom: 14,
+        marginBottom: 10,
     },
 
     image: {
-        maxWidth: "100%",
-        maxHeight: "min(52vh, 420px)",
-        width: "auto",
-        height: "auto",
+        width: "100%",
+        maxHeight: "min(42vh, 360px)",
         objectFit: "contain",
         display: "block",
         borderRadius: 14,
@@ -170,7 +226,7 @@ const styles: Record<string, React.CSSProperties> = {
 
     missing: {
         width: "100%",
-        boxSizing: "border-box", // same issue here
+        boxSizing: "border-box",
         minHeight: 220,
         borderRadius: 14,
         border: "1px dashed rgba(255, 215, 0, 0.28)",
@@ -185,8 +241,8 @@ const styles: Record<string, React.CSSProperties> = {
 
     captionBlock: {
         textAlign: "center",
-        padding: "4px 10px 0 10px",
-        marginBottom: 14,
+        padding: "2px 8px 0 8px",
+        marginBottom: 10,
         boxSizing: "border-box",
     },
     captionLabel: {
@@ -197,7 +253,7 @@ const styles: Record<string, React.CSSProperties> = {
         marginBottom: 8,
     },
     captionText: {
-        fontSize: 20,
+        fontSize: 18,
         fontWeight: 850,
         letterSpacing: -0.25,
         lineHeight: 1.25,
@@ -206,7 +262,7 @@ const styles: Record<string, React.CSSProperties> = {
     actionsRow: {
         display: "flex",
         justifyContent: "center",
-        gap: 10,
+        gap: 8,
         flexWrap: "wrap",
         paddingBottom: 2,
     },
@@ -237,6 +293,14 @@ const styles: Record<string, React.CSSProperties> = {
         boxShadow: "0 10px 26px rgba(0,0,0,0.35)",
     },
 
+    btnActiveUp: {
+        border: "1px solid rgba(120, 255, 180, 0.55)",
+        background: "linear-gradient(180deg, rgba(120,255,180,0.18), rgba(120,255,180,0.07))",
+    },
+    btnActiveDown: {
+        border: "1px solid rgba(255, 140, 140, 0.45)",
+        background: "linear-gradient(180deg, rgba(255,140,140,0.14), rgba(255,140,140,0.06))",
+    },
     btnDisabled: { opacity: 0.55, cursor: "not-allowed" },
 
     errorBox: {

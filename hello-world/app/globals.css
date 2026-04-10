@@ -1,6 +1,17 @@
-/* App shell spacing so content doesn't hide behind sticky nav */
+/* App shell spacing */
 .ac-page {
-  padding-top: 76px;
+  padding-top: 18px;
+  padding-bottom: 24px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  min-height: 100%;
 }
 
 /* Make app consistently dark (so it matches your older look) */
@@ -110,10 +121,15 @@ body {
 }
 
 @media (max-width: 640px) {
+  .ac-page {
+    padding-top: 14px;
+  }
+
   .ac-nav-inner {
     grid-template-columns: 1fr;
     gap: 10px;
   }
+
   .ac-actions {
     justify-content: center;
   }

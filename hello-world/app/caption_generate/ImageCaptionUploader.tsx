@@ -111,10 +111,12 @@ export default function ImageCaptionUploader() {
         }
 
         setBusy(true);
-        setStatus("Generating captions...");
+        setStatus("Preparing upload...");
 
         try {
             const token = await getAccessToken();
+
+            setStatus("Preparing upload...");
 
             // Step 1: presign
             const presignRes = await fetch(`${API_BASE}/pipeline/generate-presigned-url`, {
@@ -128,6 +130,8 @@ export default function ImageCaptionUploader() {
             if (!presignRes.ok) throw new Error(await readError(presignRes));
             const presign: PresignResponse = await presignRes.json();
 
+            setStatus("Uploading image...");
+
             // Step 2: upload bytes
             const putRes = await fetch(presign.presignedUrl, {
                 method: "PUT",
@@ -135,6 +139,8 @@ export default function ImageCaptionUploader() {
                 body: file,
             });
             if (!putRes.ok) throw new Error(await readError(putRes));
+
+            setStatus("Saving image...");
 
             // Step 3: register
             const registerRes = await fetch(`${API_BASE}/pipeline/upload-image-from-url`, {
@@ -147,6 +153,8 @@ export default function ImageCaptionUploader() {
             });
             if (!registerRes.ok) throw new Error(await readError(registerRes));
             const registered: RegisterResponse = await registerRes.json();
+
+            setStatus("Generating captions...");
 
             // Step 4: captions
             const captionsRes = await fetch(`${API_BASE}/pipeline/generate-captions`, {
@@ -161,6 +169,8 @@ export default function ImageCaptionUploader() {
 
             const records = await captionsRes.json();
             const arr = (Array.isArray(records) ? records : [records]).map(normalizeCaption);
+
+            setStatus("Finishing up...");
 
             setCaptions(arr);
             setIdx(0);
@@ -262,7 +272,13 @@ export default function ImageCaptionUploader() {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [busy, captions, canPrev, canNext, current?.id, canVote, voteState]);
 
-    const fileName = file?.name ?? "No file selected";
+    const fileName = file?.name ?? "No image selected";
+    const readyToGenerate = Boolean(file && supported);
+    const helperMessage = !file
+        ? "Step 1: choose an image to enable caption generation."
+        : !supported
+            ? "That file type is not supported."
+            : "Step 2: generate captions, then use arrows or buttons to review them.";
 
     return (
         <main style={styles.page}>
@@ -273,7 +289,6 @@ export default function ImageCaptionUploader() {
                 </div>
 
                 <div style={styles.card}>
-                    {/* Top bar: left file picker, centered generate button */}
                     <div style={styles.topBar}>
                         <div style={styles.filePicker}>
                             <input
@@ -302,15 +317,22 @@ export default function ImageCaptionUploader() {
                         <div style={styles.generateWrap}>
                             <button
                                 type="button"
-                                disabled={busy || !file || !supported}
+                                disabled={busy || !readyToGenerate}
                                 onClick={runPipeline}
-                                style={{ ...styles.btn, ...(busy ? styles.btnDisabled : {}) }}
+                                style={{
+                                    ...(readyToGenerate ? styles.btn : styles.btnSecondary),
+                                    ...((busy || !readyToGenerate) ? styles.btnDisabled : {}),
+                                }}
                             >
                                 {busy ? "Working..." : "Generate captions"}
                             </button>
                         </div>
 
                         <div style={{ width: 1 }} />
+                    </div>
+
+                    <div style={styles.helperRow}>
+                        <div style={styles.helperText}>{helperMessage}</div>
                     </div>
 
                     {!supported && file ? (
@@ -323,8 +345,10 @@ export default function ImageCaptionUploader() {
                     ) : null}
 
                     {status ? (
-                        <div style={styles.infoBox}>
-                            <div style={styles.infoText}>{status}</div>
+                        <div style={styles.statusSlot}>
+                            <div style={styles.infoBox}>
+                                <div style={styles.infoText}>{status}</div>
+                            </div>
                         </div>
                     ) : null}
 
@@ -337,7 +361,12 @@ export default function ImageCaptionUploader() {
 
                     {/* Media + caption area with side arrows */}
                     {previewUrl ? (
-                        <div style={styles.mediaShell}>
+                        <div
+                            style={{
+                                ...styles.mediaShell,
+                                ...(captions && captions.length > 0 ? styles.mediaShellWithCaptions : {}),
+                            }}
+                        >
                             {/* left/right arrows (only show when captions exist) */}
                             {captions && captions.length > 0 ? (
                                 <>
@@ -428,16 +457,16 @@ export default function ImageCaptionUploader() {
 }
 
 const styles: Record<string, React.CSSProperties> = {
-    page: { padding: 28, maxWidth: 1100, margin: "0 auto" },
+    page: { padding: "4px 16px 12px", maxWidth: 1100, margin: "0 auto" },
     column: { maxWidth: 920, margin: "0 auto" },
-    header: { marginBottom: 14 },
-    h1: { fontSize: 30, fontWeight: 850, letterSpacing: -0.3, margin: 0, lineHeight: 1.1 },
+    header: { marginBottom: 8 },
+    h1: { fontSize: 28, fontWeight: 850, letterSpacing: -0.3, margin: 0, lineHeight: 1.05 },
     subtle: { margin: "6px 0 0 0", opacity: 0.75, fontSize: 14 },
 
     card: {
         width: "100%",
         borderRadius: 22,
-        padding: 18,
+        padding: 14,
         boxSizing: "border-box",
         border: "1px solid rgba(255, 215, 0, 0.22)",
         background:
@@ -450,13 +479,24 @@ const styles: Record<string, React.CSSProperties> = {
         display: "grid",
         gridTemplateColumns: "1fr auto 1fr",
         alignItems: "center",
-        gap: 12,
+        gap: 8,
+    },
+
+    helperRow: {
+        marginTop: 8,
+        marginBottom: 2,
+    },
+
+    helperText: {
+        fontSize: 13.5,
+        opacity: 0.82,
+        lineHeight: 1.4,
     },
 
     filePicker: {
         display: "flex",
         alignItems: "center",
-        gap: 10,
+        gap: 8,
         minWidth: 0,
     },
 
@@ -536,14 +576,20 @@ const styles: Record<string, React.CSSProperties> = {
         borderRadius: 18,
         border: "1px solid rgba(255,255,255,0.12)",
         background: "rgba(0,0,0,0.35)",
-        padding: 8,
+        padding: 6,
         display: "grid",
         placeItems: "center",
-        marginTop: 14,
+        marginTop: 8,
         overflow: "hidden",
         maxHeight: "calc(100vh - 360px)",
         height: "calc(100vh - 360px)",
-        minHeight: 260,
+        minHeight: 220,
+    },
+
+    mediaShellWithCaptions: {
+        maxHeight: "calc(100vh - 460px)",
+        height: "calc(100vh - 460px)",
+        minHeight: 180,
     },
 
     image: {
@@ -590,10 +636,14 @@ const styles: Record<string, React.CSSProperties> = {
     },
     captionText: { fontSize: 20, fontWeight: 900, letterSpacing: -0.25, lineHeight: 1.25 },
 
-    voteRow: { display: "flex", justifyContent: "center", gap: 10, marginTop: 12, flexWrap: "wrap" },
+    voteRow: { display: "flex", justifyContent: "center", gap: 8, marginTop: 8, flexWrap: "wrap" },
+
+    statusSlot: {
+        marginTop: 8,
+    },
 
     infoBox: {
-        marginTop: 12,
+        marginTop: 0,
         borderRadius: 14,
         border: "1px solid rgba(100,180,255,0.25)",
         background: "rgba(100,180,255,0.08)",
@@ -603,7 +653,7 @@ const styles: Record<string, React.CSSProperties> = {
     infoText: { fontSize: 13, opacity: 0.9, lineHeight: 1.35 },
 
     errorBox: {
-        marginTop: 12,
+        marginTop: 8,
         borderRadius: 14,
         border: "1px solid rgba(255,120,120,0.35)",
         background: "rgba(255,120,120,0.08)",

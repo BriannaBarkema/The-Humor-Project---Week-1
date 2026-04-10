@@ -83,12 +83,12 @@ export default function LoginClient() {
 
 const styles: Record<string, React.CSSProperties> = {
     page: {
-        padding: 28,
+        padding: "8px 20px 20px",
         maxWidth: 1100,
         margin: "0 auto",
     },
     shell: {
-        minHeight: "calc(100vh - 56px)",
+        minHeight: "calc(100vh - 160px)",
         display: "grid",
         placeItems: "center",
     },
